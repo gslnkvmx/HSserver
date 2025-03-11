@@ -28,8 +28,9 @@ namespace HandlingSupervisor.Services
       try
       {
         var flightInfo = await _flightInfoService.GetFlightInfoAsync(flightId);
-        var boardInfo = await _boardInfoService.GetBoardInfoAsync(flightId);
-        if (flightInfo == null || boardInfo == null) throw new Exception("Can't get flight data");
+        //var boardInfo = await _boardInfoService.GetBoardInfoAsync(flightId);
+        //if (flightInfo == null || boardInfo == null) throw new Exception("Can't get flight data");
+        if (flightInfo == null) throw new Exception("Can't get flight data");
         // Создаем задачу забрать пассажиров для passengerBus
         var task1 = new AirportTask
         {
@@ -42,7 +43,8 @@ namespace HandlingSupervisor.Services
           Point = "C" + flightInfo.PlaneParking + "1",
           Details = new
           {
-            PassengersCount = boardInfo.NumPassengers,
+            //PassengersCount = boardInfo.NumPassengers,
+            PassengersCount = 100,
             TakeTo = "EX-1"
           }
         };
@@ -84,8 +86,9 @@ namespace HandlingSupervisor.Services
       try
       {
         var flightInfo = await _flightInfoService.GetFlightInfoAsync(flightId);
-        var boardInfo = await _boardInfoService.GetBoardInfoAsync(flightId);
-        if (flightInfo == null || boardInfo == null) throw new Exception("Can't get flight data");
+        //var boardInfo = await _boardInfoService.GetBoardInfoAsync(flightId);
+        //if (flightInfo == null || boardInfo == null) throw new Exception("Can't get flight data");
+        if (flightInfo == null) throw new Exception("Can't get flight data");
         switch (status)
         {
           case "RegistrationClosed":

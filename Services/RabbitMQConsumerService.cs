@@ -62,7 +62,7 @@ namespace HandlingSupervisor.Services
       }
       else
       {
-        //await _taskManager.HandleFlightStatusChangeAsync(message.flightId, message.status);
+        await _taskManager.HandleFlightStatusChangeAsync(message.FlightId, message.Status);
       }
     }
 

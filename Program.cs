@@ -1,3 +1,4 @@
+using HandlingSupervisor.Middleware;
 using HandlingSupervisor.Models;
 using HandlingSupervisor.Services;
 
@@ -22,7 +23,7 @@ builder.Services.AddSingleton(fileLogger);
 
 builder.Services.AddHttpClient<IFlightInfoService, FlightInfoService>(client =>
 {
-  client.BaseAddress = new Uri("https://bumpy-seals-jog.loca.lt/");
+  client.BaseAddress = new Uri("https://fuzzy-facts-post.loca.lt");
 });
 
 builder.Services.AddHttpClient<IBoardInfoService, BoardInfoService>(client =>
@@ -33,11 +34,14 @@ builder.Services.AddHttpClient<IBoardInfoService, BoardInfoService>(client =>
 builder.Services.AddSingleton<ITaskManager, BaseTaskManager>();
 builder.Services.AddSingleton<RabbitMQService>();
 builder.Services.AddHostedService<RabbitMQConsumerService>();
+
 var app = builder.Build();
 
 app.MapTaskEndpoints();
 
 PrintEndpoints(app);
+
+app.UseMiddleware<RequestLoggingMiddleware>();
 
 app.Run();
 
