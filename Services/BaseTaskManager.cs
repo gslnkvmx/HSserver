@@ -40,7 +40,7 @@ namespace HandlingSupervisor.Services
           StateMessage = "Задача забрать пассажиров отправлена",
           PlaneId = flightInfo.PlaneId,
           FlightId = flightId,
-          Point = "C" + flightInfo.PlaneParking + "1",
+          Point = "C" + "P-1" + "1", //!!!!!!!
           Details = new
           {
             //PassengersCount = boardInfo.NumPassengers,
@@ -64,7 +64,7 @@ namespace HandlingSupervisor.Services
           StateMessage = "Задача забрать багаж отправлена",
           PlaneId = flightInfo.PlaneId,
           FlightId = flightId,
-          Point = "C" + flightInfo.PlaneParking + "2",
+          Point = "C" + "P-1" + "2", //!!!!!!!!!!!
           Details = new
           {
             TakeTo = "BW-1"
@@ -79,6 +79,30 @@ namespace HandlingSupervisor.Services
         _consoleLogger.PrintOverlay("In HandleFlightArrivalAsync: " + ex.Message);
         _fileLogger.LogError("In HandleFlightArrivalAsync: " + ex.Message);
       }
+    }
+
+    public async Task HandleBoardingAsync()
+    {
+      var deliverPassengers = new AirportTask
+      {
+        TaskId = _currentId++,
+        TaskType = TaskType.deliverPassengers,
+        State = TaskState.Sent,
+        StateMessage = "Задача доставить пассажиров отправлена",
+        PlaneId = "111",
+        FlightId = "111",
+        Point = "C" + "P-1" + "1",
+        Details = new
+        {
+          gate = "G-11"
+        }
+      };
+
+      // Сохраняем задачу
+      CreateTask(deliverPassengers);
+
+      // Отправляем в очередь passengerBus
+      _rabbitMQService.PublishTask(deliverPassengers, "tasks.passengerBus");
     }
 
     public async Task HandleFlightStatusChangeAsync(string flightId, string status)
@@ -162,6 +186,8 @@ namespace HandlingSupervisor.Services
         _fileLogger.LogError("In HandleFlightStatusChangeAsync: " + ex.Message);
       }
     }
+
+
 
     public AirportTask CreateTask(AirportTask task)
     {

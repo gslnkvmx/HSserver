@@ -13,5 +13,6 @@ namespace HandlingSupervisor.Services
 
     Task HandleFlightArrivalAsync(string flightId);
     Task HandleFlightStatusChangeAsync(string flightId, string status);
+    Task HandleBoardingAsync();
   }
 }

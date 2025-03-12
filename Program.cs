@@ -23,7 +23,7 @@ builder.Services.AddSingleton(fileLogger);
 
 builder.Services.AddHttpClient<IFlightInfoService, FlightInfoService>(client =>
 {
-  client.BaseAddress = new Uri("https://fuzzy-facts-post.loca.lt");
+  client.BaseAddress = new Uri("https://ten-worlds-stick.loca.lt");
 });
 
 builder.Services.AddHttpClient<IBoardInfoService, BoardInfoService>(client =>
