@@ -23,12 +23,12 @@ builder.Services.AddSingleton(fileLogger);
 
 builder.Services.AddHttpClient<IFlightInfoService, FlightInfoService>(client =>
 {
-  client.BaseAddress = new Uri("https://ten-worlds-stick.loca.lt");
+  client.BaseAddress = new Uri("https://brown-flowers-drive.loca.lt");
 });
 
 builder.Services.AddHttpClient<IBoardInfoService, BoardInfoService>(client =>
 {
-  client.BaseAddress = new Uri("http://board-api/");
+  client.BaseAddress = new Uri("https://lemon-deer-type.loca.lt");
 });
 
 builder.Services.AddSingleton<ITaskManager, BaseTaskManager>();

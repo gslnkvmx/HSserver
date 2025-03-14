@@ -1,3 +1,4 @@
+using System.Numerics;
 using System.Threading.Tasks;
 using HandlingSupervisor.Models;
 
@@ -28,24 +29,23 @@ namespace HandlingSupervisor.Services
       try
       {
         var flightInfo = await _flightInfoService.GetFlightInfoAsync(flightId);
-        //var boardInfo = await _boardInfoService.GetBoardInfoAsync(flightId);
-        //if (flightInfo == null || boardInfo == null) throw new Exception("Can't get flight data");
         if (flightInfo == null) throw new Exception("Can't get flight data");
+        var boardInfo = await _boardInfoService.GetBoardInfoAsync(flightInfo.PlaneId);
+        if (boardInfo == null) throw new Exception("Can't get flight data");
         // Создаем задачу забрать пассажиров для passengerBus
         var task1 = new AirportTask
         {
           TaskId = _currentId++,
-          TaskType = TaskType.pickUpPassengers,
+          TaskType = "pickUpPassengers",
           State = TaskState.Sent,
-          StateMessage = "Задача забрать пассажиров отправлена",
+          StateMessage = "забрать пассажиров",
           PlaneId = flightInfo.PlaneId,
           FlightId = flightId,
-          Point = "C" + "P-1" + "1", //!!!!!!!
+          Point = "C" + flightInfo.PlaneParking + "1", //!!!!!!!
           Details = new
           {
-            //PassengersCount = boardInfo.NumPassengers,
-            PassengersCount = 100,
-            TakeTo = "EX-1"
+            PassengersCount = boardInfo.NumPassengers,
+            takeTo = "XT-1"
           }
         };
 
@@ -59,15 +59,15 @@ namespace HandlingSupervisor.Services
         var task2 = new AirportTask
         {
           TaskId = _currentId++,
-          TaskType = TaskType.pickUpBaggage,
+          TaskType = "pickUpBaggage",
           State = TaskState.Sent,
-          StateMessage = "Задача забрать багаж отправлена",
+          StateMessage = "забрать багаж",
           PlaneId = flightInfo.PlaneId,
           FlightId = flightId,
-          Point = "C" + "P-1" + "2", //!!!!!!!!!!!
+          Point = "C" + flightInfo.PlaneParking + "2", //!!!!!!!!!!!
           Details = new
           {
-            TakeTo = "BW-1"
+            takeTo = "BW-1"
           }
         };
 
@@ -81,38 +81,14 @@ namespace HandlingSupervisor.Services
       }
     }
 
-    public async Task HandleBoardingAsync()
-    {
-      var deliverPassengers = new AirportTask
-      {
-        TaskId = _currentId++,
-        TaskType = TaskType.deliverPassengers,
-        State = TaskState.Sent,
-        StateMessage = "Задача доставить пассажиров отправлена",
-        PlaneId = "111",
-        FlightId = "111",
-        Point = "C" + "P-1" + "1",
-        Details = new
-        {
-          gate = "G-11"
-        }
-      };
-
-      // Сохраняем задачу
-      CreateTask(deliverPassengers);
-
-      // Отправляем в очередь passengerBus
-      _rabbitMQService.PublishTask(deliverPassengers, "tasks.passengerBus");
-    }
-
     public async Task HandleFlightStatusChangeAsync(string flightId, string status)
     {
       try
       {
         var flightInfo = await _flightInfoService.GetFlightInfoAsync(flightId);
-        //var boardInfo = await _boardInfoService.GetBoardInfoAsync(flightId);
-        //if (flightInfo == null || boardInfo == null) throw new Exception("Can't get flight data");
         if (flightInfo == null) throw new Exception("Can't get flight data");
+        //var boardInfo = await _boardInfoService.GetBoardInfoAsync(flightInfo.PlaneId);
+        //if (boardInfo == null) throw new Exception("Can't get flight data");
         switch (status)
         {
           case "RegistrationClosed":
@@ -120,9 +96,9 @@ namespace HandlingSupervisor.Services
             var deliverFood = new AirportTask
             {
               TaskId = _currentId++,
-              TaskType = TaskType.deliverFood,
+              TaskType = "deliverFood",
               State = TaskState.Sent,
-              StateMessage = "Задача доставить еду отправлена",
+              StateMessage = "доставить еду",
               PlaneId = flightInfo.PlaneId,
               FlightId = flightId,
               Point = "C" + flightInfo.PlaneParking + "1",
@@ -138,9 +114,9 @@ namespace HandlingSupervisor.Services
             var deliverBaggage = new AirportTask
             {
               TaskId = _currentId++,
-              TaskType = TaskType.deliverBaggage,
+              TaskType = "deliverBaggage",
               State = TaskState.Sent,
-              StateMessage = "Задача доставить багаж отправлена",
+              StateMessage = "доставить багаж",
               PlaneId = flightInfo.PlaneId,
               FlightId = flightId,
               Point = "C" + flightInfo.PlaneParking + "2",
@@ -157,9 +133,9 @@ namespace HandlingSupervisor.Services
             var deliverPassengers = new AirportTask
             {
               TaskId = _currentId++,
-              TaskType = TaskType.deliverPassengers,
+              TaskType = "deliverPassengers",
               State = TaskState.Sent,
-              StateMessage = "Задача доставить пассажиров отправлена",
+              StateMessage = "доставить пассажиров",
               PlaneId = flightInfo.PlaneId,
               FlightId = flightId,
               Point = "C" + flightInfo.PlaneParking + "1",
@@ -187,12 +163,112 @@ namespace HandlingSupervisor.Services
       }
     }
 
+    public async Task HandleRefuelAsync(string planeId, string planeParking, int fuel)
+    {
+      try
+      {
+        //var flightInfo = await _flightInfoService.GetFlightInfoAsync(flightId);
+        //if (flightInfo == null) throw new Exception("Can't get flight data");
+        var boardInfo = await _boardInfoService.GetBoardInfoAsync(planeId);
+        if (boardInfo == null) throw new Exception("Can't get flight data");
+        // Дозаправить самолет
+        var refuel = new AirportTask
+        {
+          TaskId = _currentId++,
+          TaskType = "refuel",
+          State = TaskState.Sent,
+          StateMessage = "Заправить самолет",
+          PlaneId = planeId,
+          FlightId = boardInfo.Flight.FlightId,
+          Point = "C" + planeParking + "1",
+          Details = new
+          {
+            fuelAmount = fuel
+          }
+        };
+        CreateTask(refuel);
+        _rabbitMQService.PublishTask(refuel, "tasks.refueler");
+      }
+      catch (Exception ex)
+      {
+        _consoleLogger.PrintOverlay("In HandleFlightStatusChangeAsync: " + ex.Message);
+        _fileLogger.LogError("In HandleFlightStatusChangeAsync: " + ex.Message);
+      }
+    }
 
+    public async Task HandleRefuelTest(string planeId, string planeParking, int fuel)
+    {
+      try
+      {
+        //var flightInfo = await _flightInfoService.GetFlightInfoAsync(flightId);
+        //if (flightInfo == null) throw new Exception("Can't get flight data");
+        //var boardInfo = await _boardInfoService.GetBoardInfoAsync(planeId);
+        //if (boardInfo == null) throw new Exception("Can't get flight data");
+        // Дозаправить самолет
+        _consoleLogger.PrintOverlay($"{planeId}, {planeParking}, {fuel}");
+        var refuel = new AirportTask
+        {
+          TaskId = _currentId++,
+          TaskType = "refuel",
+          State = TaskState.Sent,
+          StateMessage = "Заправить самолет",
+          PlaneId = planeId,
+          FlightId = "FL123",
+          Point = "C" + planeParking + "1",
+          Details = new
+          {
+            fuelAmount = fuel
+          }
+        };
+        CreateTask(refuel);
+        _rabbitMQService.PublishTask(refuel, "tasks.refueler");
+      }
+      catch (Exception ex)
+      {
+        _consoleLogger.PrintOverlay("In HandleFlightStatusChangeAsync: " + ex.Message);
+        _fileLogger.LogError("In HandleFlightStatusChangeAsync: " + ex.Message);
+      }
+    }
+
+    public async Task HandleFollowMeAsync(string planeId, string Runway, string planeP)
+    {
+      try
+      {
+        //var flightInfo = await _flightInfoService.GetFlightInfoAsync(flightId);
+        //if (flightInfo == null) throw new Exception("Can't get flight data");
+        var boardInfo = await _boardInfoService.GetBoardInfoAsync(planeId);
+        if (boardInfo == null) throw new Exception("Can't get flight data");
+        // Дозаправить самолет
+        var followMe = new AirportTask
+        {
+          TaskId = _currentId++,
+          TaskType = "followMe",
+          State = TaskState.Sent,
+          StateMessage = "Довести самолет",
+          PlaneId = planeId,
+          FlightId = boardInfo.Flight.FlightId,
+          Point = planeP,
+          Details = new
+          {
+            runway = Runway,
+            planeParking = planeP
+          }
+        };
+        CreateTask(followMe);
+        _rabbitMQService.PublishTask(followMe, "tasks.followMe");
+      }
+      catch (Exception ex)
+      {
+        _consoleLogger.PrintOverlay("In HandleFlightStatusChangeAsync: " + ex.Message);
+        _fileLogger.LogError("In HandleFlightStatusChangeAsync: " + ex.Message);
+      }
+    }
 
     public AirportTask CreateTask(AirportTask task)
     {
       task.TaskId = _currentId++;
       _tasks[task.TaskId] = task;
+
       Task.Run(() => _consoleLogger.UpdateTaskLog(task));
       return task;
     }

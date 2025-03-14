@@ -36,5 +36,18 @@ public static class TaskEndpoints
     {
       return Results.Ok(manager.GetAllTasks());
     });
+
+    app.MapPost("/v1/tasks/refuel", (RefuelTaskRequest request, ITaskManager manager, ConsoleLogger _consoleLogger) =>
+    {
+      _consoleLogger.PrintOverlay($"{request.PlaneId}, {request.PlaneParking}, {request.FuelAmount}");
+      manager.HandleRefuelTest(request.PlaneId, request.PlaneParking, request.FuelAmount);
+      return Results.Ok();
+    });
+
+    app.MapPost("/v1/tasks/followMe", (FollowMeTaskRequest request, ITaskManager manager) =>
+    {
+      manager.HandleFollowMeAsync(request.PlaneId, request.Runway, request.PlaneParking);
+      return Results.Ok();
+    });
   }
 }

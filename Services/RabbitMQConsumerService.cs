@@ -60,10 +60,6 @@ namespace HandlingSupervisor.Services
       {
         await _taskManager.HandleFlightArrivalAsync(message.FlightId);
       }
-      if (message.Status == "Boarding")
-      {
-        await _taskManager.HandleBoardingAsync();
-      }
       else
       {
         await _taskManager.HandleFlightStatusChangeAsync(message.FlightId, message.Status);
