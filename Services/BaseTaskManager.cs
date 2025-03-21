@@ -179,7 +179,7 @@ namespace HandlingSupervisor.Services
           State = TaskState.Sent,
           StateMessage = "Заправить самолет",
           PlaneId = planeId,
-          FlightId = boardInfo.Flight.FlightId,
+          FlightId = boardInfo.FlightId,
           Point = "C" + planeParking + "1",
           Details = new
           {
@@ -238,7 +238,7 @@ namespace HandlingSupervisor.Services
         //if (flightInfo == null) throw new Exception("Can't get flight data");
         var boardInfo = await _boardInfoService.GetBoardInfoAsync(planeId);
         if (boardInfo == null) throw new Exception("Can't get flight data");
-        // Дозаправить самолет
+        // Сопроводить самолет
         var followMe = new AirportTask
         {
           TaskId = _currentId++,
@@ -246,12 +246,12 @@ namespace HandlingSupervisor.Services
           State = TaskState.Sent,
           StateMessage = "Довести самолет",
           PlaneId = planeId,
-          FlightId = boardInfo.Flight.FlightId,
-          Point = planeP,
+          FlightId = boardInfo.FlightId,
+          Point = "PCR-" + planeP.Split('-')[1],
           Details = new
           {
             runway = Runway,
-            planeParking = planeP
+            planeParking = "PCR-" + planeP.Split('-')[1],
           }
         };
         CreateTask(followMe);

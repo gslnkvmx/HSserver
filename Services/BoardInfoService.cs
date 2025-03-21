@@ -9,7 +9,8 @@ namespace HandlingSupervisor.Services
     [JsonPropertyName("plane_id")]
     public required string PlaneId { get; set; }
 
-    public required FlightInfo Flight { get; set; }
+    [JsonPropertyName("flight_id")]
+    public required string FlightId { get; set; }
 
     public List<int>? Baggage { get; set; }
 
@@ -27,12 +28,6 @@ namespace HandlingSupervisor.Services
 
     [JsonPropertyName("numPassengers")]
     public int NumPassengers { get; set; }
-
-    public class FlightInfo
-    {
-      [JsonPropertyName("flight_id")]
-      public string? FlightId { get; set; }
-    }
   }
 
   public interface IBoardInfoService
